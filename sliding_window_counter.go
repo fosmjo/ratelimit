@@ -21,15 +21,19 @@ type SlidingWindowCounter struct {
 }
 
 func NewSlidingWindowCounter(windowSize time.Duration, quota uint, clock Colck) *SlidingWindowCounter {
+	now := clock.Now().UnixNano()
+
 	return &SlidingWindowCounter{
-		windowSize: windowSize,
-		quota:      quota,
-		clock:      clock,
+		windowSize:         windowSize,
+		quota:              quota,
+		lastWindowStart:    now - int64(windowSize),
+		currentWindowStart: now,
+		clock:              clock,
 	}
 }
 
 func (swc *SlidingWindowCounter) Request() bool {
-	now := swc.clock.Now().Unix()
+	now := swc.clock.Now().UnixNano()
 	windowStart := now - int64(swc.windowSize)
 
 	swc.mu.Lock()

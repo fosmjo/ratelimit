@@ -25,7 +25,7 @@ func NewSlidingWindowLog(windowSize time.Duration, quota uint, clock Colck) *Sli
 }
 
 func (swl *SlidingWindowLog) Request() bool {
-	now := swl.clock.Now().Unix()
+	now := swl.clock.Now().UnixNano()
 	windowStart := now - int64(swl.windowSize)
 
 	swl.mu.Lock()
