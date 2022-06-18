@@ -1,3 +1,3 @@
-module github.com/fosmjo/ratelimit
+module github.com/fosmjo/system-design-interview
 
 go 1.18
