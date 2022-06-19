@@ -110,10 +110,10 @@ func NewConfig(opts ...Option) (*Config, error) {
 	}
 
 	config.timestampShiftBits = config.dataCenterIDBits + config.machineIDBits + config.sequenceBits
-	config.maxTimestamp = -1 ^ (-1 << config.timestampBits)
-	config.maxDataCenterID = -1 ^ (-1 << config.dataCenterIDBits)
-	config.maxMachineID = -1 ^ (-1 << config.machineIDBits)
-	config.maxSequence = -1 ^ (-1 << config.sequenceBits)
+	config.maxTimestamp = ^(int64(-1) << config.timestampBits)
+	config.maxDataCenterID = ^(int64(-1) << config.dataCenterIDBits)
+	config.maxMachineID = ^(int64(-1) << config.machineIDBits)
+	config.maxSequence = ^(int64(-1) << config.sequenceBits)
 
 	return config, nil
 }
@@ -138,7 +138,7 @@ func (c *Config) NewGenerator(
 		machineID:           machineID,
 		shiftedDataCenterID: shiftedDataCenterID,
 		shiftedMachineID:    shiftedMachineID,
-		lastSeqResetTs:      -1,
+		lastSeqResetTime:    clock.Now().Add(time.Second * -1),
 	}
 
 	return
