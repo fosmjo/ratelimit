@@ -9,7 +9,7 @@ import (
 )
 
 func TestGenerator_GenerateID(t *testing.T) {
-	g := newGenerator()
+	g := newGenerator(&realClock{})
 	id, err := g.GenerateID()
 	if err != nil {
 		t.Errorf("GenerateID error: %v", err)
@@ -26,7 +26,7 @@ func TestGenerator_GenerateID(t *testing.T) {
 }
 
 func TestGenerator_TimeOfID(t *testing.T) {
-	g := newGenerator()
+	g := newGenerator(&dummyClock{})
 	id, err := g.GenerateID()
 	if err != nil {
 		t.Errorf("GenerateID error: %v", err)
@@ -38,14 +38,32 @@ func TestGenerator_TimeOfID(t *testing.T) {
 	}
 }
 
-func newGenerator() *generator.Generator {
+func BenchmarkGenerateID(b *testing.B) {
+	g := newGenerator(&realClock{})
+
+	for i := 0; i < b.N; i++ {
+		g.GenerateID()
+	}
+}
+
+func BenchmarkGenerateIDParallel(b *testing.B) {
+	g := newGenerator(&realClock{})
+
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			g.GenerateID()
+		}
+	})
+}
+
+func newGenerator(clock generator.Clock) *generator.Generator {
 	config, err := generator.NewConfig()
 	if err != nil {
 		err = fmt.Errorf("NewConfig error: %w", err)
 		panic(err)
 	}
 
-	g, err := config.NewGenerator(&clock{}, 1, 1)
+	g, err := config.NewGenerator(clock, 1, 1)
 	if err != nil {
 		err = fmt.Errorf("NewGenerator error: %w", err)
 		panic(err)
@@ -54,10 +72,16 @@ func newGenerator() *generator.Generator {
 	return g
 }
 
-type clock struct{}
+type realClock struct{}
+
+func (c *realClock) Now() time.Time {
+	return time.Now()
+}
 
 var _time = time.Date(2022, time.June, 19, 0, 0, 0, 0, time.UTC)
 
-func (c *clock) Now() time.Time {
+type dummyClock struct{}
+
+func (c *dummyClock) Now() time.Time {
 	return _time
 }
